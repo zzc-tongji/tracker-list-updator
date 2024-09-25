@@ -1,0 +1,32 @@
+name: Update
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'latest'
+      - id: cache-dependency
+        name: Cache Dependency
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: yarn-lock-${{ hashFiles('yarn.lock') }}
+      - if: ${{ steps.cache-dependency.outputs.cache-hit != 'true' }}
+        name: Install Dependency
+        run: |
+          yarn install --production=false
+      - name: Run
+        run: |
+          yarn start --tracker-provider=${{ vars.TRACKER_PROVIDOR }} --qbittorrent-site=${{ secrets.QBITTORRENT_SITE }}
+    
